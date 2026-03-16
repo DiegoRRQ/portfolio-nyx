@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nyx — Roblox UI Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Azeret+Mono:wght@300;400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f5f0;
+    --gray: #1a1a1a;
+    --mid: #2e2e2e;
+    --dim: #888;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--white);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(245,245,240,0.4);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9998;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 48px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  nav.scrolled {
+    border-color: rgba(245,245,240,0.08);
+    background: rgba(10,10,10,0.88);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 400; font-size: 20px; letter-spacing: 0.04em;
+    color: var(--white); text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-family: 'Azeret Mono', monospace; font-size: 11px;
+    letter-spacing: 0.08em; color: var(--dim);
+    text-decoration: none; text-transform: lowercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center; padding: 120px 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 80% 50%, rgba(255,255,255,0.03) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.015) 80px, rgba(255,255,255,0.015) 81px),
+      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.015) 80px, rgba(255,255,255,0.015) 81px);
+    pointer-events: none;
+  }
+  .hero-left { position: relative; z-index: 1; }
+  .hero-tag {
+    font-family: 'Azeret Mono', monospace; font-size: 11px;
+    letter-spacing: 0.14em; color: var(--dim);
+    text-transform: lowercase; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-tag::before { content: ''; display: block; width: 32px; height: 1px; background: var(--dim); }
+  .status-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: #4ade80; border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero-title {
+    font-family: 'Syne', sans-serif; font-weight: 400;
+    font-size: clamp(64px, 9vw, 128px);
+    line-height: 0.95; letter-spacing: -0.02em; margin-bottom: 32px;
+  }
+  .hero-title span { display: block; -webkit-text-stroke: 1px rgba(245,245,240,0.22); color: transparent; }
+  .hero-desc { font-size: 15px; line-height: 1.7; color: rgba(245,245,240,0.5); max-width: 380px; margin-bottom: 48px; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 13px 26px;
+    border: 1px solid rgba(245,245,240,0.2);
+    color: var(--white); text-decoration: none;
+    font-family: 'Azeret Mono', monospace; font-size: 11px;
+    letter-spacing: 0.06em; text-transform: lowercase;
+    transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .hero-cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--white); transform: translateX(-101%);
+    transition: transform 0.25s ease; z-index: -1;
+  }
+  .hero-cta:hover { color: var(--black); }
+  .hero-cta:hover::before { transform: translateX(0); }
+  .hero-right { display: flex; justify-content: center; align-items: center; position: relative; z-index: 1; }
+  .hero-avatar-wrap { position: relative; width: 320px; height: 320px; }
+  .hero-avatar-ring {
+    position: absolute; inset: -20px;
+    border: 1px solid rgba(245,245,240,0.08); border-radius: 50%;
+    animation: spin 20s linear infinite;
+  }
+  .hero-avatar-ring::before {
+    content: ''; position: absolute; top: -4px; left: 50%;
+    width: 8px; height: 8px; background: var(--white);
+    border-radius: 50%; transform: translateX(-50%);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hero-avatar {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: var(--gray); border: 1px solid rgba(245,245,240,0.1);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .avatar-placeholder { font-family:'Syne',sans-serif; font-weight:400; font-size:72px; color:rgba(245,245,240,0.07); user-select:none; }
+  .avatar-note {
+    position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%);
+    font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em;
+    color:var(--dim); white-space:nowrap; text-transform:lowercase;
+  }
+
+  /* SECTIONS */
+  section { padding: 120px 48px; }
+  .section-label {
+    font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.16em;
+    color:var(--dim); text-transform:lowercase; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:rgba(245,245,240,0.08); max-width:200px; }
+  .section-title {
+    font-family:'Syne',sans-serif; font-weight:400; font-size:clamp(38px,5vw,68px);
+    letter-spacing:-0.01em; margin-bottom:64px; line-height:1;
+  }
+
+  /* PORTFOLIO */
+  #portfolio { background: var(--black); }
+  .portfolio-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+  .portfolio-item {
+    aspect-ratio:4/3; background:var(--gray);
+    border:1px solid rgba(245,245,240,0.06);
+    position:relative; overflow:hidden; cursor:none;
+    transition:transform 0.3s ease;
+  }
+  .portfolio-item:hover { z-index:2; transform:scale(1.02); }
+  .portfolio-item-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+  .portfolio-placeholder {
+    font-family:'Azeret Mono',monospace; font-size:11px; letter-spacing:0.1em;
+    color:rgba(245,245,240,0.1); text-transform:lowercase; text-align:center; padding:24px; user-select:none;
+  }
+  .portfolio-overlay {
+    position:absolute; inset:0; background:rgba(10,10,10,0.88);
+    display:flex; flex-direction:column; justify-content:flex-end; padding:24px;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .portfolio-item:hover .portfolio-overlay { opacity:1; }
+  .portfolio-item-title { font-family:'Syne',sans-serif; font-weight:400; font-size:18px; letter-spacing:-0.01em; margin-bottom:4px; }
+  .portfolio-item-tag { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--dim); text-transform:lowercase; }
+  .portfolio-note {
+    margin-top:24px; font-family:'Azeret Mono',monospace; font-size:11px;
+    color:var(--dim); letter-spacing:0.06em;
+    border-left:2px solid rgba(245,245,240,0.1); padding-left:16px;
+  }
+
+  /* GAMES */
+  #games { background: var(--gray); }
+  .games-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .game-card {
+    background:var(--black); border:1px solid rgba(245,245,240,0.06);
+    overflow:hidden; transition:border-color 0.25s, transform 0.25s; cursor:none;
+  }
+  .game-card:hover { border-color:rgba(245,245,240,0.2); transform:translateY(-4px); }
+  .game-thumb {
+    width:100%; aspect-ratio:16/10; background:var(--mid);
+    display:flex; align-items:center; justify-content:center;
+    border-bottom:1px solid rgba(245,245,240,0.06);
+  }
+  .game-thumb-text { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:rgba(245,245,240,0.1); text-transform:lowercase; user-select:none; }
+  .game-info { padding:16px; }
+  .game-title { font-family:'Outfit',sans-serif; font-weight:500; font-size:14px; margin-bottom:6px; }
+  .game-role { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--dim); text-transform:lowercase; margin-bottom:10px; }
+  .game-tag { display:inline-block; font-family:'Azeret Mono',monospace; font-size:9px; letter-spacing:0.06em; color:var(--black); background:var(--white); padding:2px 8px; text-transform:lowercase; }
+
+  /* PRICING */
+  #pricing { background: var(--black); }
+  .pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+  .pricing-card {
+    background:var(--gray); border:1px solid rgba(245,245,240,0.06);
+    padding:48px 36px; position:relative; transition:border-color 0.25s; cursor:none;
+  }
+  .pricing-card:hover { border-color:rgba(245,245,240,0.2); }
+  .pricing-card.featured { background:var(--white); color:var(--black); border-color:var(--white); }
+  .pricing-tier { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.12em; color:var(--dim); text-transform:lowercase; margin-bottom:24px; }
+  .pricing-card.featured .pricing-tier { color:rgba(10,10,10,0.5); }
+  .pricing-price { font-family:'Syne',sans-serif; font-weight:400; font-size:64px; letter-spacing:-0.02em; line-height:1; margin-bottom:8px; }
+  .pricing-card.featured .pricing-price { color:var(--black); }
+  .pricing-price sup { font-size:22px; vertical-align:top; margin-top:10px; display:inline-block; font-weight:400; }
+  .pricing-price-note { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--dim); margin-bottom:32px; }
+  .pricing-card.featured .pricing-price-note { color:rgba(10,10,10,0.45); }
+  .pricing-desc { font-size:13px; line-height:1.6; color:rgba(245,245,240,0.5); margin-bottom:32px; min-height:52px; }
+  .pricing-card.featured .pricing-desc { color:rgba(10,10,10,0.55); }
+  .pricing-features { list-style:none; margin-bottom:40px; }
+  .pricing-feature {
+    font-size:13px; color:rgba(245,245,240,0.7);
+    padding:10px 0; border-bottom:1px solid rgba(245,245,240,0.06);
+    display:flex; align-items:center; gap:10px;
+  }
+  .pricing-card.featured .pricing-feature { color:rgba(10,10,10,0.7); border-color:rgba(10,10,10,0.1); }
+  .pricing-feature::before { content:''; width:4px; height:4px; flex-shrink:0; background:var(--white); border-radius:50%; }
+  .pricing-card.featured .pricing-feature::before { background:var(--black); }
+  .pricing-btn {
+    display:block; width:100%; padding:14px;
+    border:1px solid rgba(245,245,240,0.2); background:transparent;
+    color:var(--white); font-family:'Azeret Mono',monospace; font-size:11px;
+    letter-spacing:0.08em; text-transform:lowercase; text-align:center;
+    text-decoration:none; cursor:none; transition:all 0.25s;
+  }
+  .pricing-btn:hover { background:var(--white); color:var(--black); }
+  .pricing-card.featured .pricing-btn { background:var(--black); color:var(--white); border-color:var(--black); }
+  .pricing-card.featured .pricing-btn:hover { background:var(--gray); }
+  .pricing-featured-tag {
+    position:absolute; top:20px; right:20px;
+    font-family:'Azeret Mono',monospace; font-size:9px;
+    letter-spacing:0.08em; text-transform:lowercase;
+    background:var(--black); color:var(--white); padding:4px 10px;
+  }
+
+  /* RULES */
+  #rules { background: var(--gray); }
+  .rules-layout { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+  .rules-list { list-style:none; }
+  .rule-item { display:grid; grid-template-columns:48px 1fr; gap:20px; padding:24px 0; border-bottom:1px solid rgba(245,245,240,0.06); align-items:start; }
+  .rule-num { font-family:'Syne',sans-serif; font-weight:400; font-size:28px; color:rgba(245,245,240,0.1); line-height:1; }
+  .rule-title { font-family:'Outfit',sans-serif; font-weight:400; font-size:15px; margin-bottom:6px; }
+  .rule-desc { font-size:13px; line-height:1.6; color:rgba(245,245,240,0.45); }
+  .rules-sidebar { position:sticky; top:120px; }
+  .rules-sidebar-box { background:var(--black); border:1px solid rgba(245,245,240,0.08); padding:40px; }
+  .sidebar-title { font-family:'Syne',sans-serif; font-weight:400; font-size:28px; letter-spacing:-0.01em; margin-bottom:16px; }
+  .sidebar-text { font-size:13px; line-height:1.7; color:rgba(245,245,240,0.45); margin-bottom:32px; }
+  .contact-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(245,245,240,0.06); }
+  .contact-label { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--dim); text-transform:lowercase; }
+  .contact-value { font-family:'Azeret Mono',monospace; font-size:11px; color:var(--white); }
+
+  footer {
+    padding:40px 48px; border-top:1px solid rgba(245,245,240,0.06);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .footer-logo { font-family:'Syne',sans-serif; font-weight:400; font-size:16px; letter-spacing:0.02em; color:rgba(245,245,240,0.3); }
+  .footer-note { font-family:'Azeret Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--dim); text-transform:lowercase; }
+
+  .fade-up { opacity:0; transform:translateY(24px); transition:opacity 0.6s ease, transform 0.6s ease; }
+  .fade-up.visible { opacity:1; transform:translateY(0); }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--black); }
+  ::-webkit-scrollbar-thumb { background:var(--mid); }
+
+  @media (max-width:900px) {
+    nav { padding:20px 24px; }
+    .hero { grid-template-columns:1fr; padding:120px 24px 80px; }
+    .hero-right { display:none; }
+    section { padding:80px 24px; }
+    .portfolio-grid { grid-template-columns:repeat(2,1fr); }
+    .games-grid { grid-template-columns:repeat(2,1fr); }
+    .pricing-grid { grid-template-columns:1fr; }
+    .rules-layout { grid-template-columns:1fr; gap:40px; }
+    .rules-sidebar { position:static; }
+    footer { padding:24px; flex-direction:column; gap:12px; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="navbar">
+  <a href="#" class="nav-logo">Nyx</a>
+  <ul class="nav-links">
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#games">Games</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#rules">Rules</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">
+      <span class="status-dot"></span>
+      open for commissions
+    </div>
+    <h1 class="hero-title">
+      Nyx
+      <span>UI</span>
+      Design
+    </h1>
+    <p class="hero-desc">
+      hey, i'm Nyx, I make UI for Roblox games.
+      clean designs, good feel. Been doing this for a while and I know what works.
+    </p>
+    <a href="#portfolio" class="hero-cta">
+      see my work
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+  <div class="hero-right">
+    <div class="hero-avatar-wrap">
+      <div class="hero-avatar-ring"></div>
+      <div class="hero-avatar">
+        <div class="avatar-placeholder">Nyx</div>
+      </div>
+      <span class="avatar-note">Roblox Studio · UI Design</span>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="section-label">01 — Work</div>
+  <h2 class="section-title">Portfolio</h2>
+  <div class="portfolio-grid">
+    <div class="portfolio-item fade-up">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+    <div class="portfolio-item fade-up" style="transition-delay:.08s">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+    <div class="portfolio-item fade-up" style="transition-delay:.16s">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+    <div class="portfolio-item fade-up" style="transition-delay:.24s">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+    <div class="portfolio-item fade-up" style="transition-delay:.32s">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+    <div class="portfolio-item fade-up" style="transition-delay:.4s">
+      <div class="portfolio-item-inner"><div class="portfolio-placeholder">Import your<br>screenshot here</div></div>
+      <div class="portfolio-overlay"><div class="portfolio-item-title">Project Title</div><div class="portfolio-item-tag">UI · Roblox Studio</div></div>
+    </div>
+  </div>
+  <p class="portfolio-note">drop your screenshots or clips in here, gifs work too</p>
+</section>
+
+<!-- CONTRIBUTED GAMES -->
+<section id="games">
+  <div class="section-label">02 — Games</div>
+  <h2 class="section-title">Contributed Games</h2>
+  <div class="games-grid">
+    <div class="game-card fade-up">
+      <div class="game-thumb"><span class="game-thumb-text">thumbnail</span></div>
+      <div class="game-info">
+        <div class="game-title">Game Title</div>
+        <div class="game-role">ui designer</div>
+        <span class="game-tag">active</span>
+      </div>
+    </div>
+    <div class="game-card fade-up" style="transition-delay:.08s">
+      <div class="game-thumb"><span class="game-thumb-text">thumbnail</span></div>
+      <div class="game-info">
+        <div class="game-title">Game Title</div>
+        <div class="game-role">ui designer</div>
+        <span class="game-tag">active</span>
+      </div>
+    </div>
+    <div class="game-card fade-up" style="transition-delay:.16s">
+      <div class="game-thumb"><span class="game-thumb-text">thumbnail</span></div>
+      <div class="game-info">
+        <div class="game-title">Game Title</div>
+        <div class="game-role">ui designer</div>
+        <span class="game-tag">shipped</span>
+      </div>
+    </div>
+    <div class="game-card fade-up" style="transition-delay:.24s">
+      <div class="game-thumb"><span class="game-thumb-text">thumbnail</span></div>
+      <div class="game-info">
+        <div class="game-title">Game Title</div>
+        <div class="game-role">ui designer</div>
+        <span class="game-tag">shipped</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">03 — Rates</div>
+  <h2 class="section-title">Pricing</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card fade-up">
+      <div class="pricing-tier">basic</div>
+      <div class="pricing-price"><sup>R$</sup>000</div>
+      <div class="pricing-price-note">per deliverable</div>
+      <div class="pricing-desc">ur description.</div>
+      <ul class="pricing-features">
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+      </ul>
+      <a href="#rules" class="pricing-btn">hit me up</a>
+    </div>
+    <div class="pricing-card featured fade-up" style="transition-delay:.1s">
+      <span class="pricing-featured-tag">most picked</span>
+      <div class="pricing-tier">standard</div>
+      <div class="pricing-price"><sup>R$</sup>000</div>
+      <div class="pricing-price-note">per project</div>
+      <div class="pricing-desc">ur description.</div>
+      <ul class="pricing-features">
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+      </ul>
+      <a href="#rules" class="pricing-btn">hit me up</a>
+    </div>
+    <div class="pricing-card fade-up" style="transition-delay:.2s">
+      <div class="pricing-tier">premium</div>
+      <div class="pricing-price"><sup>R$</sup>000</div>
+      <div class="pricing-price-note">per project</div>
+      <div class="pricing-desc">ur description.</div>
+      <ul class="pricing-features">
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+        <li class="pricing-feature">ur features</li>
+      </ul>
+      <a href="#rules" class="pricing-btn">hit me up</a>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section id="rules">
+  <div class="section-label">04 — Terms</div>
+  <h2 class="section-title">Rules</h2>
+  <div class="rules-layout">
+    <ul class="rules-list">
+      <li class="rule-item fade-up">
+        <span class="rule-num">01</span>
+        <div><div class="rule-title">pay before i start</div><div class="rule-desc">full payment or 50% upfront no exceptions. i don't start until it's confirmed.</div></div>
+      </li>
+      <li class="rule-item fade-up" style="transition-delay:.06s">
+        <span class="rule-num">02</span>
+        <div><div class="rule-title">no refunds once work begins</div><div class="rule-desc">once i've started, that's it. no refunds if I've already began.</div></div>
+      </li>
+      <li class="rule-item fade-up" style="transition-delay:.12s">
+        <span class="rule-num">03</span>
+        <div><div class="rule-title">give me real feedback</div><div class="rule-desc">tell me what's actually wrong and i'll fix it fast.</div></div>
+      </li>
+      <li class="rule-item fade-up" style="transition-delay:.18s">
+        <span class="rule-num">04</span>
+        <div><div class="rule-title">credit me</div><div class="rule-desc">I just need a mention in the game desc or credits. that's all I ask.</div></div>
+      </li>
+      <li class="rule-item fade-up" style="transition-delay:.24s">
+        <span class="rule-num">05</span>
+        <div><div class="rule-title">don't resell my work</div><div class="rule-desc">assets I make for you are only for you. don't give them to friends or sell them to someone else.</div></div>
+      </li>
+      <li class="rule-item fade-up" style="transition-delay:.3s">
+        <span class="rule-num">06</span>
+        <div><div class="rule-title">keep it in discord</div><div class="rule-desc">dm me on discord and i'll reply within 24h.</div></div>
+      </li>
+    </ul>
+    <div class="rules-sidebar fade-up" style="transition-delay:.2s">
+      <div class="rules-sidebar-box">
+        <div class="sidebar-title">want to hire me?</div>
+        <div class="sidebar-text">dm me on discord and we'll sort it out. i'm pretty chill, just read the rules first.</div>
+        <div>
+          <div class="contact-row"><span class="contact-label">discord</span><span class="contact-value">nyxxer1</span></div>
+          <div class="contact-row"><span class="contact-label">roblox</span><span class="contact-value">add yours here</span></div>
+          <div class="contact-row"><span class="contact-label">timezone</span><span class="contact-value">UTC+4</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-logo">Nyx</span>
+  <span class="footer-note">UI Design · Roblox Studio · © 2026</span>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => {
+    mx=e.clientX; my=e.clientY;
+    cursor.style.transform=`translate(${mx-5}px,${my-5}px)`;
+  });
+  (function loop(){
+    rx+=(mx-rx-18)*0.15; ry+=(my-ry-18)*0.15;
+    ring.style.transform=`translate(${rx}px,${ry}px)`;
+    requestAnimationFrame(loop);
+  })();
+  window.addEventListener('scroll',()=>{
+    document.getElementById('navbar').classList.toggle('scrolled',scrollY>60);
+  });
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.12});
+  document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
